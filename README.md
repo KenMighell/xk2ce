@@ -1,2 +1,2 @@
 # xpk2ce
-Developmental version of K2CE.
+Developmental (private) version of K2CE.
