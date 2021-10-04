@@ -4,17 +4,13 @@
 
 # file://k2_cadence_envents.py
 
-__version__ = '0.87'
-
-# https://github.com/KenMighell/xpk2ce
+__version__ = '0.86'
 
 """
 
 ## Notices
 
-Copyright (C) 2021 Kenneth John Mighell
-
-Copyright (C) 2019, 2020 United States Government as represented by the 
+Copyright (C) 2019 United States Government as represented by the 
 Administrator of the National Aeronautics and Space Administration. 
 All Rights Reserved.
 
@@ -53,9 +49,10 @@ AGREEMENT.
 import sys
 
 pyver = (sys.version_info.major*10) + (sys.version_info.minor)
-if (pyver < 37):
-    print('*** ERROR *** This application needs Python 3.7 or higher.')
+if (pyver < 27):
+    print('*** ERROR *** This application needs Python 2.7 or higher.')
     sys.exit(1)
+pass#if
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -77,11 +74,6 @@ except:
     print('For further installation details see the lightkurve homepage:\n')
     print('http://lightkurve.keplerscience.org/install.html\n')
     sys.exit(1)
-pass
-lkver_ = lk.__version__  # example: '2.0.11' or '1.0b26.dev'
-lkver = int(lkver_[0])*100
-# print('\n',lkver_,'=lkver_')
-# print(lkver,'=lkver\n')
 
 def check_file_exists(filename,overwrite):
     """
@@ -252,16 +244,7 @@ def k2_cadence_events(\
         assert (campaign is not None),msg0+msg1+msg4
         if (not useTPF):
             try:
-                # BUG DEPRECATED CODE FOUND WITH lightkurve >= 2.0.11
-                # In lightkurve 2.0.11, 
-                # lk.search_lightcurvefile() 
-                # is just a wrapper routine for
-                # lk.search_lightcurve()
-                # BUG FIX: BEGIN
-                # objf = lk.search_lightcurvefile(\  # USING DEPRECATED CODE
-                assert(lkver >= 200)
-                objf = lk.search_lightcurve(\
-                  target=target,cadence=cadence,\
+                objf = lk.search_lightcurvefile(target=target,cadence=cadence,\
                   campaign=campaign).download(quality_bitmask=0)
             except Exception as e:
                 print("[1] Exception raised: {}".format(e))
@@ -321,35 +304,19 @@ def k2_cadence_events(\
     if (isTPF): 
         tpf = objf
         ftype = ftypes[1]
-    # ==========
-    # BUG CODE CHANGE IN lightkurve >= 2.0.11
-    # 
-    # filename = objf.path
     #
-    # works with older lightkurve versions (before 2019SEP24) 
-    # but fails with
-    # lightkurve v2.0.11 because the "path" attribute was renamed as "filename"
-    # BUG FIX: BEGIN
-    try:
-        objf.path  # True for lightkurve versions before 2019SEP24
-        filename = objf.path
-    except AttributeError:
-        filename = objf.filename  # use the "filename" attribute instead
-    # BUG FIX: END
+    filename = objf.path
     path, fn = os.path.split(filename)
     if (len(path)==0):
         path = os.getcwd()
     print('\nfilename=%s/%s' % (path,fn))
-    assert(lkver >= 200)
-    hdu = fits.open(filename)
+    #
     try:
-        # telescop = objf.hdu[0].header['TELESCOP']  # < lk_v2.0.11
-        telescop = hdu[0].header['TELESCOP']
+        telescop = objf.hdu[0].header['TELESCOP']
     except:
         print('\n***** ERROR *****\n\nMissing keyword: TELESCOP')
         sys.exit(1)
-    # telescop = objf.hdu[0].header['TELESCOP']  # < lk_v2.0.11
-    telescop = hdu[0].header['TELESCOP']
+    telescop = objf.hdu[0].header['TELESCOP']
     if (telescop=='Kepler'):
         assert(keplerData)
         assert(not tessData)
@@ -357,8 +324,7 @@ def k2_cadence_events(\
         assert(not keplerData)
         assert(tessData)
     #
-    # extname = objf.hdu[1].header['EXTNAME']  # < lk_v2.0.11
-    extname = hdu[1].header['EXTNAME']
+    extname = objf.hdu[1].header['EXTNAME']  # FITS keyword
     if (isLCF):
         assert (extname == 'LIGHTCURVE')
     else:
@@ -370,13 +336,11 @@ def k2_cadence_events(\
     obsmode = None
     if (keplerData):
         try:
-            # obsmode = objf.hdu[0].header['OBSMODE']  # < lk_v2.0.11
-            obsmode = hdu[0].header['OBSMODE']
+            obsmode = objf.hdu[0].header['OBSMODE']
         except:
             obsmode = ''
     try:
-        # mission = objf.hdu[0].header['MISSION']  # < lk_v2.0.11
-        mission = hdu[0].header['MISSION']
+        mission = objf.hdu[0].header['MISSION']
     except:
         mission = None
     if ((mission is not None)and(obsmode is not None)):
@@ -389,27 +353,21 @@ def k2_cadence_events(\
     else:
         print('\n%s %s\n' % (telescop,ftype))
     # 
-    # time = objf.hdu[1].data['time'].copy()  # < lk_v2.0.11
-    time = hdu[1].data['time'].copy()
-    # cadenceno = objf.hdu[1].data['CADENCENO'].copy()  # < lk_v2.0.11
-    cadenceno = hdu[1].data['CADENCENO'].copy()
+    time = objf.hdu[1].data['time'].copy()
+    cadenceno = objf.hdu[1].data['CADENCENO'].copy()
     if (SAP_FLUX):
         flux_type = 'SAP_FLUX'
     else:
         flux_type = 'PDCSAP_FLUX'
     if (isLCF):
-        # flux = lcf.hdu[1].data[flux_type].copy()  # < lk_v2.0.11
-        flux = hdu[1].data[flux_type].copy()
+        flux = lcf.hdu[1].data[flux_type].copy()
         if (keplerData):
-            # quality = lcf.hdu[1].data['SAP_QUALITY'].copy()  # < lk_v2.0.11
-            quality = hdu[1].data['SAP_QUALITY'].copy()
+            quality = lcf.hdu[1].data['SAP_QUALITY'].copy()
         else:
-            # quality = lcf.hdu[1].data['QUALITY'].copy()  # < lk_v2.0.11
-            quality = hdu[1].data['QUALITY'].copy()
+            quality = lcf.hdu[1].data['QUALITY'].copy()
     else:
         flux = tpf.to_lightcurve().flux.copy()
-        # quality = tpf.hdu[1].data['QUALITY'].copy()  # < lk_v2.0.111
-        quality = hdu[1].data['QUALITY'].copy()
+        quality = tpf.hdu[1].data['QUALITY'].copy()
         flux_type = 'SAP_FLUX'
     assert (time.size == cadenceno.size)
     assert (time.size == quality.size)
@@ -418,27 +376,22 @@ def k2_cadence_events(\
     flux /= flux_median  # Normalized flux
     #
     try: 
-        # campaign = objf.hdu[0].header['CAMPAIGN']  # < lk_2.0.11
-        campaign = hdu[0].header['CAMPAIGN']
+        campaign = objf.hdu[0].header['CAMPAIGN']  # FITS keyword
         print('K2 Campaign %d\n' % campaign)
     except:
         campaign = None
     try: 
-        # quarter = objf.hdu[0].header['QUARTER']  # < lk_2.0.11
-        quarter = hdu[0].header['QUARTER']
+        quarter = objf.hdu[0].header['QUARTER']  # FITS keyword
         print('Kepler Quarter %d\n' % quarter)
     except:
         quarter = None
     try: 
-        # sector = objf.hdu[0].header['SECTOR']  # < lk_2.0.11
-        sector = hdu[0].header['SECTOR']
+        sector = objf.hdu[0].header['SECTOR']  # FITS keyword
         print('TESS Sector %d\n' % sector)
     except:
         sector = None
-    # bjdrefi = objf.hdu[1].header['BJDREFI']  # < lk_v2.0.11
-    bjdrefi = hdu[1].header['BJDREFI']
-    # object = objf.hdu[0].header['OBJECT']  # < lk_v2.0.11
-    object = hdu[0].header['OBJECT']
+    bjdrefi = objf.hdu[1].header['BJDREFI']  # FITS keyword
+    object = objf.hdu[0].header['OBJECT']  # FITS keyword
     print('target: %s\n' % (object))
     print('%d cadences\n' % (len(time)))
     if (bitmask is not None):
