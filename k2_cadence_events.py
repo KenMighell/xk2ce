@@ -1,12 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-# Kepler K2 Cadence Events (k2ce)
+# K2CE (Kepler/K2 Cadence Events)
 
 # file://k2_cadence_envents.py
 
-__version__ = '0.87'
+__version__ = '0.95'  # 2021OCT08
+version = float(__version__)
 
-# https://github.com/KenMighell/xpk2ce
+# GitHub repo: https://github.com/KenMighell/xk2ce
 
 """
 
@@ -14,7 +15,7 @@ __version__ = '0.87'
 
 Copyright (C) 2021 Kenneth John Mighell
 
-Copyright (C) 2019, 2020 United States Government as represented by the 
+Copyright (C) 2019-2020 United States Government as represented by the 
 Administrator of the National Aeronautics and Space Administration. 
 All Rights Reserved.
 
@@ -77,11 +78,9 @@ except:
     print('For further installation details see the lightkurve homepage:\n')
     print('http://lightkurve.keplerscience.org/install.html\n')
     sys.exit(1)
-pass
+pass  # try
 lkver_ = lk.__version__  # example: '2.0.11' or '1.0b26.dev'
 lkver = int(lkver_[0])*100
-# print('\n',lkver_,'=lkver_')
-# print(lkver,'=lkver\n')
 
 def check_file_exists(filename,overwrite):
     """
@@ -95,7 +94,7 @@ def check_file_exists(filename,overwrite):
             print('\n***** ERROR *****\n\n%s' % (msg))
             print("new_filename='%s'\n" % filename)
             sys.exit(1)
-pass  #} def
+pass  # def
 
 def k2_cadence_events(\
   filename=None,
@@ -214,6 +213,7 @@ def k2_cadence_events(\
     print('**********************************************')
     print('%s %s' % ('Kepler K2 Cadence Events (k2ce): Version',__version__))
     print('**********************************************')
+    print('\n',lkver_,'=lk.__version__')
     # if no target information given, use this default target:
     if ((filename is None)and(target is None)and(campaign is None)):
         if (command_line):
@@ -277,6 +277,8 @@ def k2_cadence_events(\
                 sys.exit(1)
             isTPF = True
         keplerData = True
+        # BUG DEBUG: print(type(objf),'=type(objf) [1]')
+        # BUG DEBUG: sys.stdout.flush()
         ok = True
     else:
         assert (filename is not None),\
@@ -286,22 +288,29 @@ def k2_cadence_events(\
         ok = False
         if (not ok):
             try:
-                objf = lk.open(filename,quality_bitmask=0)
+                objf = lk.read(filename,quality_bitmask=0)
+                # BUG DEBUG : print(type(objf),'=type(objf) [2]')
+                # BUG DEBUG : sys.stdout.flush()
             except Exception as e:
                 print("[2] Exception raised: {}".format(e))
+                sys.stdout.flush()
                 sys.exit(1)
-            if isinstance(objf,lk.lightcurvefile.KeplerLightCurveFile):
+            #if isinstance(objf,'lk.lightcurvefile.KeplerLightCurveFile'):  # V0.86
+            if isinstance(objf,lk.lightcurve.KeplerLightCurve):
                 keplerData = True
                 isLCF = True
                 ok = True
+            #elif isinstance(objf,lk.targetpixelfile.KeplerTargetPixelFile):  # V0.86
             elif isinstance(objf,lk.targetpixelfile.KeplerTargetPixelFile):
                 keplerData = True
                 isTPF = True
                 ok = True
-            elif isinstance(objf,lk.lightcurvefile.TessLightCurveFile):
+            #elif isinstance(objf,lk.lightcurvefile.TessLightCurveFile):  #  V0.86
+            elif isinstance(objf,lk.lightcurve.TessLightCurve):
                 tessData = True
                 isLCF = True
                 ok = True
+            #elif isinstance(objf,lk.targetpixelfile.TessTargetPixelFile):  # V0.86
             elif isinstance(objf,lk.targetpixelfile.TessTargetPixelFile):
                 tessData = True
                 isTPF = True
@@ -309,12 +318,10 @@ def k2_cadence_events(\
             else:
                 str_ = type(objf)
                 print('***** ERROR *****:  '\
-                  'lk.open returned an unknown type of object!'+str_)
+                  'lk.read returned an unknown type of object!'+str_)
                 sys.exit(1)
-    pass #}  if (from_archive):
+    pass  # if (from_archive):
     assert(ok)
-    pass #} if (from_archive):
-    assert (ok)
     if (isLCF):
         lcf = objf
         ftype = ftypes[0]
@@ -322,13 +329,13 @@ def k2_cadence_events(\
         tpf = objf
         ftype = ftypes[1]
     # ==========
-    # BUG CODE CHANGE IN lightkurve >= 2.0.11
+    # BUG : FATAL ERROR DUE TO LIGHTKURVE REDESIGN IN lightkurve V2.X
     # 
-    # filename = objf.path
+    # filename = objf.path  # K2CE V0.86 LINE 308
     #
     # works with older lightkurve versions (before 2019SEP24) 
-    # but fails with
-    # lightkurve v2.0.11 because the "path" attribute was renamed as "filename"
+    # but fails with lightkurve V2.0.11 because the "path" 
+    # attribute (V1.X) was renamed as "filename" (V2.X).
     # BUG FIX: BEGIN
     try:
         objf.path  # True for lightkurve versions before 2019SEP24
@@ -381,13 +388,13 @@ def k2_cadence_events(\
         mission = None
     if ((mission is not None)and(obsmode is not None)):
         if (mission=='K2'):
-            print('\n%s/%s %s %s\n' % (telescop,mission,obsmode,ftype))
+            print('\n%s/%s %s "%s"\n' % (telescop,mission,obsmode,ftype))
         if (mission=='Kepler'):
-            print('\n%s %s %s\n' % (telescop,obsmode,ftype))  
+            print('\n%s %s "%s"\n' % (telescop,obsmode,ftype))  
     elif (obsmode is not None):
-        print('\n%s %s %s\n' % (telescop,obsmode,ftype))
+        print('\n%s %s "%s"\n' % (telescop,obsmode,ftype))
     else:
-        print('\n%s %s\n' % (telescop,ftype))
+        print('\n%s "%s"\n' % (telescop,ftype))
     # 
     # time = objf.hdu[1].data['time'].copy()  # < lk_v2.0.11
     time = hdu[1].data['time'].copy()
@@ -707,6 +714,29 @@ def k2_cadence_events(\
         print('%s  <--- new FITS file written  :-)\n' % (new_filename))
         print('')
     sys.stdout.flush()
+    # BUG : For lightkurve version >= 2.: all nan times removed
+    # BUG : ^--- technically this is a "feature" and not a bug because it was done delibrately
+    # BUG FIX : BEGIN
+    chatty = False
+    remove_nan_times = True  # version >= 0.88
+    if ((lkver >- 200) and remove_nan_times):
+        if chatty:
+            print('lightkurve BUG FIX : BEGIN')
+        n_events = np.count_nonzero(idx)  # as defined above
+        if chatty:
+            print(n_events, '=n_events (based on idx)')
+            print(idx.size, '=idx.size (may have nan time cadences)')
+            print(np.count_nonzero(np.isnan(time)), 'number of time nan values')
+        jdx = ~np.delete(~idx, np.argwhere(np.isnan(time)).ravel())  # remove nan times
+        idx = jdx.copy()
+        n_events = np.count_nonzero(idx)  # redefined )based on jdx)
+        if chatty:
+            print(jdx.size, '=jdx.size (nan time cadences removed)')
+            print(n_events, '=n_events (based on jdx)')
+            print('idx =jdx.copy()  # idx is now a copy of jdx')
+            print('lightkurve BUG FIX : END')
+    pass # if ((lkver... 
+    # BUG FIX : END 
     return (ax, n_events, objf, idx)
 pass  #} def
 
