@@ -325,7 +325,7 @@ You can learn more about the many options of the k2\_cadence\_events application
 
 Copyright © 2021 Kenneth John Mighell
 
-Copyright © 2019, 2020 United States Government as represented by the Administrator of the National Aeronautics and Space Administration. All Rights Reserved.
+Copyright © 2019-2020 United States Government as represented by the Administrator of the National Aeronautics and Space Administration. All Rights Reserved.
 
 NASA acknowledges the SETI Institute’s primary role in authoring and producing the Kepler-K2 Cadence Events application under Cooperative Agreement Number NNX13AD01A
 
