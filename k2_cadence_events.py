@@ -4,7 +4,8 @@
 
 # file://k2_cadence_envents.py
 
-__version__ = "0.96"  # 2021OCT11
+#__version__ = "0.96"  # 2021OCT11
+__version__ = "0.97"  # 2021OCT27
 version = float(__version__)
 
 # GitHub repo: https://github.com/KenMighell/xk2ce
@@ -744,11 +745,11 @@ def k2_cadence_events(
         print("")
     sys.stdout.flush()
     # BUG : For lightkurve version >= 2.: all nan times removed
-    # BUG : ^--- technically this is a "feature" and not a bug because it was done delibrately
+    # BUG : ^--- This is a new feature and (technically) is not a bug!  :-(
     # BUG FIX : BEGIN
     chatty = False
     remove_nan_times = True  # version >= 0.88
-    if (lkver > -200) and remove_nan_times:
+    if (lkver > 200) and remove_nan_times:
         if chatty:
             print("lightkurve BUG FIX : BEGIN")
         n_events = np.count_nonzero(idx)  # as defined above
@@ -756,6 +757,7 @@ def k2_cadence_events(
             print(n_events, "=n_events (based on idx)")
             print(idx.size, "=idx.size (may have nan time cadences)")
             print(np.count_nonzero(np.isnan(time)), "number of time nan values")
+            # fi
         jdx = ~np.delete(~idx, np.argwhere(np.isnan(time)).ravel())  # remove nan times
         idx = jdx.copy()
         n_events = np.count_nonzero(idx)  # redefinition based on jdx
@@ -764,9 +766,11 @@ def k2_cadence_events(
             print(n_events, "=n_events (based on jdx)")
             print("idx =jdx.copy()  # idx is now a copy of jdx")
             print("lightkurve BUG FIX : END")
-    pass  # fi:  (lkver...
+            # fi
+        # fi
     # BUG FIX : END
-    return (ax, n_events, objf, idx)  # fed
+    return (ax, n_events, objf, idx)  
+    # fed
 
 
 def str2bool(v):
@@ -777,7 +781,8 @@ def str2bool(v):
         return False
     else:
         raise argparse.ArgumentTypeError("Boolean value expected.")
-    return None  # fed
+    return None  
+    # fed
 
 
 def accept_str_or_int(v):
@@ -788,7 +793,8 @@ def accept_str_or_int(v):
         return v
     else:
         raise argparse.ArgumentTypeError("str or int value expected.")
-    return None  # fed
+    return None  
+    # fed
 
 
 if __name__ == "__main__":
@@ -1058,5 +1064,7 @@ if __name__ == "__main__":
     flagged = np.count_nonzero(idx_)
     print("%d cadences flagged" % (flagged))
     # print('\n',lk.__version__,'=lk.__version__'
-    pass  # fi: if __name__ == "__main__":
+    # fi : __name__ == "__main__"
+
+
 # EOF
