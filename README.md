@@ -1,6 +1,6 @@
 # xk2ce
 
-Development (public) version of K2CE.
+Development version of K2CE.
 
 ---
 
